@@ -1,2 +1,2 @@
-# hyperdrive-fuse
-A FUSE filesystem for Hyperdrive
+# bitdrive-fuse
+A FUSE filesystem for BitDrive

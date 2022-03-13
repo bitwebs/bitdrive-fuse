@@ -2,17 +2,17 @@ const p = require('path')
 const fs = require('fs')
 const os = require('os')
 
-const datEncoding = require('dat-encoding')
+const bitEncoding = require('@web4/encoding')
 const mkdirp = require('mkdirp')
 const fsConstants = require('filesystem-constants')
 const Fuse = require('fuse-native')
 const { translate, linux } = fsConstants
 
-const debug = require('debug')('hyperdrive-fuse')
+const debug = require('debug')('bitdrive-fuse')
 
 const platform = os.platform()
 
-class HyperdriveFuse {
+class BitdriveFuse {
   constructor (drive, mnt, opts = {}) {
     this.drive = drive
     this.mnt = p.resolve(mnt)
@@ -86,7 +86,7 @@ class HyperdriveFuse {
       log('write', path, handle, len, offset)
 
       // TODO: Duplicating the input buffer is a temporary patch for a race condition.
-      // (Fuse overwrites the input before the data is flushed to storage in hypercore.)
+      // (Fuse overwrites the input before the data is flushed to storage in unichain.)
       buf = Buffer.from(buf)
 
       self.drive.write(handle, buf, 0, len, offset, (err, bytesWritten) => {
@@ -183,7 +183,7 @@ class HyperdriveFuse {
       self.drive.lstat(path, (err, st) => {
         if (err) return cb(-err.errno || Fuse.ENOENT)
         // Always translate absolute symlinks to be relative to the mount root.
-        // Since hyperdrive supports absolute paths that aren't prefixed by '/', translate them first.
+        // Since bitdrive supports absolute paths that aren't prefixed by '/', translate them first.
         const linkname = !p.isAbsolute(st.linkname) && !st.linkname.startsWith('.') ? '/' + st.linkname : st.linkname
         const resolved = p.isAbsolute(st.linkname) ? p.join(self.mnt, linkname) : p.join(self.mnt, p.resolve(path, linkname))
         return cb(0, resolved)
@@ -245,7 +245,7 @@ class HyperdriveFuse {
   }
 
   async mount (handlers) {
-    if (this.fuse) throw new Error('Cannot remount the same HyperdriveFuse instance.')
+    if (this.fuse) throw new Error('Cannot remount the same BitdriveFuse instance.')
 
     const self = this
     handlers = handlers ? { ...handlers } : this.getBaseHandlers()
@@ -271,7 +271,7 @@ class HyperdriveFuse {
         if (err) return reject(err)
         return fuse.mount(err => {
           if (err) return reject(err)
-          const keyString = datEncoding.encode(self.drive.key)
+          const keyString = bitEncoding.encode(self.drive.key)
           self.fuse = fuse
           return resolve({
             handlers,
@@ -296,7 +296,7 @@ class HyperdriveFuse {
 }
 
 module.exports = {
-  HyperdriveFuse,
+  BitdriveFuse,
   configure: Fuse.configure,
   unconfigure: Fuse.unconfigure,
   isConfigured: Fuse.isConfigured,

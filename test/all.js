@@ -1,17 +1,17 @@
 const p = require('path')
 const fs = require('fs')
 const test = require('tape')
-const hyperdrive = require('hyperdrive')
+const bitdrive = require('@web4/bitdrive')
 const ram = require('random-access-memory')
 const rimraf = require('rimraf')
 const xattr = require('fs-xattr')
 const Fuse = require('fuse-native')
 
-const { HyperdriveFuse } = require('..')
+const { BitdriveFuse } = require('..')
 
 test('can read/write a small file', async t => {
-  const drive = hyperdrive(ram)
-  const fuse = new HyperdriveFuse(drive, './mnt')
+  const drive = bitdrive(ram)
+  const fuse = new BitdriveFuse(drive, './mnt')
 
   const onint = () => cleanup(fuse, true)
   process.on('SIGINT', onint)
@@ -36,8 +36,8 @@ test('can read/write a small file', async t => {
 })
 
 test('can read/write a large file', async t => {
-  const drive = hyperdrive(ram)
-  const fuse = new HyperdriveFuse(drive, './mnt')
+  const drive = bitdrive(ram)
+  const fuse = new BitdriveFuse(drive, './mnt')
 
   const onint = () => cleanup(fuse, true)
   process.on('SIGINT', onint)
@@ -62,8 +62,8 @@ test('can read/write a large file', async t => {
 })
 
 test('can read/write a huge file', async t => {
-  const drive = hyperdrive(ram)
-  const fuse = new HyperdriveFuse(drive, './mnt')
+  const drive = bitdrive(ram)
+  const fuse = new BitdriveFuse(drive, './mnt')
 
   const onint = () => cleanup(fuse, true)
   process.on('SIGINT', onint)
@@ -88,8 +88,8 @@ test('can read/write a huge file', async t => {
 })
 
 test('can list a directory', async t => {
-  const drive = hyperdrive(ram)
-  const fuse = new HyperdriveFuse(drive, './mnt')
+  const drive = bitdrive(ram)
+  const fuse = new BitdriveFuse(drive, './mnt')
 
   const onint = () => cleanup(fuse, true)
   process.on('SIGINT', onint)
@@ -123,8 +123,8 @@ test('can list a directory', async t => {
 })
 
 test('can create and read from a symlink', async t => {
-  const drive = hyperdrive(ram)
-  const fuse = new HyperdriveFuse(drive, './mnt')
+  const drive = bitdrive(ram)
+  const fuse = new BitdriveFuse(drive, './mnt')
 
   const onint = () => cleanup(fuse, true)
   process.on('SIGINT', onint)
@@ -155,8 +155,8 @@ test('can create and read from a symlink', async t => {
 })
 
 test('can get/set/list xattrs', async t => {
-  const drive = hyperdrive(ram)
-  const fuse = new HyperdriveFuse(drive, './mnt')
+  const drive = bitdrive(ram)
+  const fuse = new BitdriveFuse(drive, './mnt')
 
   const onint = () => cleanup(fuse, true)
   process.on('SIGINT', onint)
@@ -180,8 +180,8 @@ test('can get/set/list xattrs', async t => {
 })
 
 test('uid/gid are normalized on read', async t => {
-  const drive = hyperdrive(ram)
-  const fuse = new HyperdriveFuse(drive, './mnt')
+  const drive = bitdrive(ram)
+  const fuse = new BitdriveFuse(drive, './mnt')
 
   const onint = () => cleanup(fuse, true)
   process.on('SIGINT', onint)
@@ -215,8 +215,8 @@ test('uid/gid are normalized on read', async t => {
 })
 
 test('a relative symlink will not read files outside the sandbox', async t => {
-  const drive = hyperdrive(ram)
-  const fuse = new HyperdriveFuse(drive, './mnt')
+  const drive = bitdrive(ram)
+  const fuse = new BitdriveFuse(drive, './mnt')
   const onint = () => cleanup(fuse, true)
   process.on('SIGINT', onint)
 
@@ -247,8 +247,8 @@ test('a relative symlink will not read files outside the sandbox', async t => {
 })
 
 test('an absolute symlink will not read files outside the sandbox', async t => {
-  const drive = hyperdrive(ram)
-  const fuse = new HyperdriveFuse(drive, './mnt')
+  const drive = bitdrive(ram)
+  const fuse = new BitdriveFuse(drive, './mnt')
   const onint = () => cleanup(fuse, true)
   process.on('SIGINT', onint)
 
@@ -281,10 +281,10 @@ test('an absolute symlink will not read files outside the sandbox', async t => {
 })
 
 test('cannot open a writable file descriptor on a non-writable drive', async t => {
-  const drive = hyperdrive(ram)
+  const drive = bitdrive(ram)
   const clone = await new Promise(resolve => {
     drive.writeFile('hello', 'world', () => {
-      const clone = hyperdrive(ram, drive.key)
+      const clone = bitdrive(ram, drive.key)
       clone.ready(() => {
         const s1 = clone.replicate(true, { live: true })
         const s2 = drive.replicate(false, { live: true })
@@ -294,7 +294,7 @@ test('cannot open a writable file descriptor on a non-writable drive', async t =
     })
   })
 
-  const fuse = new HyperdriveFuse(clone, './mnt')
+  const fuse = new BitdriveFuse(clone, './mnt')
   const onint = () => cleanup(fuse, true)
   process.on('SIGINT', onint)
   await fuse.mount()
@@ -312,7 +312,7 @@ test('cannot open a writable file descriptor on a non-writable drive', async t =
 })
 
 test.skip('a hanging get will be aborted after a timeout', async t => {
-  const drive = hyperdrive(ram)
+  const drive = bitdrive(ram)
   const handlers = getHandlers(drive, './mnt')
 
   // Create an artificial hang
